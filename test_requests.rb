@@ -6,7 +6,6 @@ require 'stringio'
 def test_server
   base_uri = URI('http://localhost:3000')
 
-  # Test 1: Basic JSON API request
   puts "\nTest 1: JSON API Request"
   uri = URI(base_uri.to_s + '/api/data')
   req = Net::HTTP::Post.new(uri)
@@ -20,14 +19,12 @@ def test_server
   puts "Response: #{response.body}"
   puts "Headers: #{response.to_hash}"
 
-  # Test 2: Test Compression with larger payload
   puts "\nTest 2: Compression Test"
   uri = URI(base_uri.to_s + '/api/large-data')
   req = Net::HTTP::Post.new(uri)
   req['Content-Type'] = 'application/json'
   req['Accept-Encoding'] = 'gzip'
 
-  # Create a large payload that would benefit from compression
   large_data = {
     data: Array.new(100) { |i| 
       {
@@ -62,7 +59,6 @@ def test_server
     puts "Compression Ratio: #{((1 - response.body.bytesize.to_f / decompressed_body.bytesize) * 100).round(2)}%"
   end
 
-  # Test 3: Test Caching
   puts "\nTest 3: Caching Test"
   uri = URI(base_uri.to_s + '/static/data.json')
   2.times do |i|

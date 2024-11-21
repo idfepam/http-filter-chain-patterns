@@ -13,8 +13,7 @@ class CompressionFilter < Filter
       original_size = original_body.bytesize
       puts "Original Size: #{original_size} bytes"
       
-      # Only compress if content is large enough to benefit from compression
-      if original_size > 150  # minimum size threshold
+      if original_size > 150  
         response.body = original_body
         compress_response(request, response)
         
@@ -32,7 +31,6 @@ class CompressionFilter < Filter
   private
 
   def should_compress?(request, response)
-    # Check if client accepts gzip encoding
     accept_encoding = request.headers['Accept-Encoding']
     return false unless accept_encoding
     
@@ -43,10 +41,8 @@ class CompressionFilter < Filter
   def response_compressible?(response)
     return false unless response.body
 
-    # Don't compress if content is already compressed
     return false if response.headers['Content-Encoding']
 
-    # Only compress text-based content types
     content_type = response.headers['Content-Type']
     return false unless content_type
 
@@ -56,13 +52,11 @@ class CompressionFilter < Filter
   def compress_response(request, response)
     return unless response.body
 
-    # Compress the response body
     output = StringIO.new
     gz = Zlib::GzipWriter.new(output)
-    gz.write(response.body.to_s)  # Convert to string in case it's a hash
+    gz.write(response.body.to_s)  
     gz.close
 
-    # Update response with compressed content
     response.body = output.string
     response.headers['Content-Encoding'] = 'gzip'
     response.headers['Content-Length'] = response.body.bytesize.to_s

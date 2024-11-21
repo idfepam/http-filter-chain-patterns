@@ -44,7 +44,6 @@ class HTTPServer
                    else 'text/plain'
                    end
 
-    # Use request body if available for API endpoints
     response_body = if request.path.start_with?('/api/')
       request.body || { message: "Hello World" }
     else
@@ -86,7 +85,6 @@ class HTTPServer
       content_length = value.to_i if key.downcase == 'content-length'
     end
 
-    # Read request body if present
     if content_length > 0
       body = client.read(content_length)
       builder.set_body(body)
@@ -135,15 +133,12 @@ class HTTPServer
   end
 
   def cacheable_response?(response)
-    # Don't cache error responses
     return false unless (200..299).include?(response.status_code)
     
-    # Check Cache-Control header
     cache_control = response.headers['Cache-Control']
     return false if cache_control && 
       (cache_control.include?('no-store') || cache_control.include?('private'))
     
-    # Add X-Cache header for cache misses
     response.headers['X-Cache'] = 'MISS'
     
     true
@@ -152,16 +147,13 @@ class HTTPServer
   def compress_response(request, response)
     return unless response.body
 
-    # Convert response body to string if it's a hash
     body_string = response.body.is_a?(Hash) ? response.body.to_json : response.body.to_s
 
-    # Compress the response body
     output = StringIO.new
     gz = Zlib::GzipWriter.new(output)
     gz.write(body_string)
     gz.close
 
-    # Update response with compressed content
     response.body = output.string
     response.headers['Content-Encoding'] = 'gzip'
     response.headers['Content-Length'] = response.body.bytesize.to_s

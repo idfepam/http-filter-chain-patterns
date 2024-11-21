@@ -36,10 +36,8 @@ class CachingFilter < Filter
   private
 
   def cacheable_request?(request)
-    # Only cache GET requests
     return false unless request.method == 'GET'
     
-    # Don't cache if Cache-Control: no-store
     cache_control = request.headers['Cache-Control']
     return false if cache_control && cache_control.include?('no-store')
     
@@ -47,22 +45,18 @@ class CachingFilter < Filter
   end
 
   def cacheable_response?(response)
-    # Don't cache error responses
     return false unless (200..299).include?(response.status_code)
     
-    # Check Cache-Control header
     cache_control = response.headers['Cache-Control']
     return false if cache_control && 
       (cache_control.include?('no-store') || cache_control.include?('private'))
     
-    # Add X-Cache header for cache misses
     response.headers['X-Cache'] = 'MISS'
     
     true
   end
 
   def generate_cache_key(request)
-    # Create unique key based on request method, path, and relevant headers
     components = [
       request.method,
       request.path,
@@ -77,7 +71,6 @@ class CachingFilter < Filter
     cached = self.class.cache[key]
     return nil unless cached
     
-    # Check if cache entry has expired
     return nil if Time.now.to_i > cached[:expires_at]
     
     cached[:response]
@@ -103,7 +96,6 @@ class CachingFilter < Filter
     response.headers = cached_response.headers.dup
     response.body = cached_response.body.dup
     
-    # Mark as cache hit
     response.headers['X-Cache'] = 'HIT'
     response.headers['X-Cache-Timestamp'] = Time.now.to_i.to_s
   end
@@ -114,7 +106,6 @@ class CachingFilter < Filter
     cloned.headers = response.headers.dup
     cloned.body = response.body.dup
     
-    # Mark as cache miss before storing
     cloned.headers['X-Cache'] = 'MISS'
     cloned
   end

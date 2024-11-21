@@ -8,7 +8,6 @@ class FilterFactory
   def self.create_filters(path)
     filters = []
     
-    # Add filters based on path
     case path
     when /^\/api\//
       filters << LoggingDecorator.new(DataTransformationFilter.new)
@@ -16,7 +15,6 @@ class FilterFactory
       filters << LoggingDecorator.new(CachingFilter.new)
     end
 
-    # Always add compression with logging
     unless filters.any? { |f| f.is_a?(LoggingDecorator) && f.instance_variable_get(:@filter).is_a?(CompressionFilter) }
       filters << LoggingDecorator.new(CompressionFilter.new)
     end

@@ -29,8 +29,7 @@ class DataTransformationFilter < Filter
     when 'application/json'
       response.body = response.body.to_json unless response.body.is_a?(String)
       response.headers['Content-Length'] = response.body.bytesize.to_s
-    when 'application/xml'
-      # Implement XML transformation if needed
+
     end
   end
 end 
